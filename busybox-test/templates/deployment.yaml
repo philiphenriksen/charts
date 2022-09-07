@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      release: {{ .Release.Name }}
+  revisionHistoryLimit: 2
+  template:
+    metadata:
+      name: {{ .Release.Name }}
+      labels:
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Release.Name }}
+        image: cfmanteiga/alpine-bash-curl-jq
+        imagePullPolicy: IfNotPresent
+        command:
+        - bash
+        args:
+        - "-c"
+        - 'coproc { exec >&-; read; }; eval exec "${COPROC[0]}<&-"; wait'
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
